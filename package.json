@@ -1,0 +1,31 @@
+{
+  "name": "contacts",
+  "version": "1.0.0",
+  "description": "contacts management app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/selva-r/contacts.git"
+  },
+  "keywords": [
+    "Contacts"
+  ],
+  "author": "Selva",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/selva-r/contacts/issues"
+  },
+  "homepage": "https://github.com/selva-r/contacts#readme",
+  "dependencies": {
+    "app-root-path": "^2.2.1",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "express-joi-validator": "^2.0.1",
+    "joi": "^14.3.1",
+    "mongoose": "^5.6.8",
+    "winston": "^3.2.1"
+  }
+}
