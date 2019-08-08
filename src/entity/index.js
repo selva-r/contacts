@@ -14,16 +14,16 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const path = require('path');
 const basename = path.basename(module.filename);
-const { successLog, errorLog } = require(APPPATH + 'log-helper');
+const { successLog, errorLog } = require(APPPATH + '/log-helper');
 const db = {};
 
 const initDb = (uri, options) => {
     mongoose.connect(uri, options, (error)=>{
         if(error) {
-            errorLog.log(` -- Database connection failed -- ${error}`);
+            errorLog.error('-- Database connection failed -- ',error);
             process.exit(1);
         }
-        successLog.log(` -- Database connection success! -- `);
+        successLog.info('-- Database connection success! -- ');
         initModels();
     })
 }

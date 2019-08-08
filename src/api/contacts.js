@@ -11,6 +11,9 @@
 
 const APPPATH = require('app-root-path');
 const { entity } = require(APPPATH + '/src/entity');
+const util = require(APPPATH + '/src/util');
+const { successLog, errorLog } = require(APPPATH + '/log-helper');
+const { responseCodes, statusCodes } = require(APPPATH + '/src/config');
 
 /**
 * Get all contacts list ( or ) contacts as per the search
@@ -30,8 +33,20 @@ const listOrSearchContact = (req, res) => {
 * @param {res} obj  - Response object
 */
 
-const createContact = (req, res) => {
+const createContact = async (req, res) => {
+    try {
+        let contactObj = {
+            'name' : req.body.name,
+            'email': req.body.email,
+            'mobile': req.body.mobile
+        };
+        let doc = await entity.Contact.create(contactObj);
+        util.response(res, responseCodes.SUCCESS, 'Successfully created!', statusCodes.SUCCESS);
 
+    } catch(err) {
+        errorLog.error(` -- CREATE CONTACT FAILED -- ${err}`);
+        util.response(res, responseCodes.ERROR, 'Something went wrong!', statusCodes.INTERNAL_SERVER_ERROR);
+    }
 }
 
 /**
@@ -52,8 +67,18 @@ const editContact = (req, res) => {
 * @param {res} obj  - Response object
 */
 
-const deleteContact = (req, res) => {
-
+const deleteContact = async (req, res) => {
+    try {
+        let id = req.params._id;
+        let result = await entity.Contact.findOneAndDelete({'_id': id});
+        if(result) {
+            util.response(res, responseCodes.SUCCESS, 'Successfully deleted!', statusCodes.SUCCESS); 
+        } else {
+            util.response(res, responseCodes.SUCCESS, 'No such contact found!', statusCodes.NOT_FOUND);
+        }
+    } catch(err) {
+        util.response(res, responseCodes.ERROR, err, statusCodes.INTERNAL_SERVER_ERROR);
+    }
 }
 
 /**

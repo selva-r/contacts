@@ -10,8 +10,8 @@
 'use strict';
 
 const winston = require('winston');
-const logger = winston.createLogger({});
-const successLogger, errorLogger = logger;
+const successLogger = winston.createLogger({}); 
+const errorLogger =  winston.createLogger({});;
 
 successLogger.add(new winston.transports.File({
     'name' : 'access-file',

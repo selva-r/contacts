@@ -16,6 +16,7 @@ const bodyParser = require('body-parser');
 const contactRoutes = require('./src/routes/contacts');
 const contactGrpRoutes = require('./src/routes/contact-group');
 const dbConn = require('./src/entity');
+const util = require('./src/util');
 
 const opts = {
   useNewUrlParser: true,
@@ -28,8 +29,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/v1', contactRoutes);
 app.use('/v1', contactGrpRoutes);
 
-app.all('*', (req, res) => {
-  res.status(404).send('Nah ! Not found');
+app.use(function (err, req, res, next) {
+  console.log(err);
+  if (err.isBoom) {
+       util.response(res, 1, err.output.payload.message, err.output.statusCode);
+  }
 });
 
-app.listen(process.env.PORT, () => console.log('Server listening on port 3000!'))
+app.all('*', (req, res) => {
+  util.response(res, 2, 'Not found', 404);
+});
+
+app.listen(process.env.PORT, () => console.log('Server listening on port 8085!'))
