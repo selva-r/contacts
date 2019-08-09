@@ -10,7 +10,7 @@
 'use strict';
 
 const APPPATH = require('app-root-path');
-const { entity } = require(APPPATH + '/src/entity');
+const { entity, toObjectId } = require(APPPATH + '/src/entity');
 const util = require(APPPATH + '/src/util');
 const { successLog, errorLog } = require(APPPATH + '/log-helper');
 const { responseCodes, statusCodes } = require(APPPATH + '/src/config');
@@ -22,8 +22,16 @@ const { responseCodes, statusCodes } = require(APPPATH + '/src/config');
 * @param {res} obj  - Response object
 */
 
-const listOrSearchContact = (req, res) => {
-
+const listOrSearchContact = async (req, res) => {
+    try {
+        
+        let searchKey = req.body.searchKey ? req.body.searchKey : '';
+        let limit = req.body.limit ? req.body.limit : 10; 
+        
+    } catch(err) {
+        errorLog.error(` -- LIST OR SEARCH FAILED -- ${err}`);
+        util.response(res, responseCodes.ERROR, 'Something went wrong!', statusCodes.INTERNAL_SERVER_ERROR);
+    }
 }
 
 /**
@@ -38,8 +46,15 @@ const createContact = async (req, res) => {
         let contactObj = {
             'name' : req.body.name,
             'email': req.body.email,
-            'mobile': req.body.mobile
+            'mobile': req.body.mobile        
         };
+        if(req.body.contact_group) {
+            let groupData = req.body.contact_group.split(',');
+            let groupArr = groupData.map((id)=>{
+                return toObjectId(id);
+            })
+            contactObj.contact_group = groupArr;
+        }
         let doc = await entity.Contact.create(contactObj);
         util.response(res, responseCodes.SUCCESS, 'Successfully created!', statusCodes.SUCCESS);
 
@@ -77,6 +92,7 @@ const deleteContact = async (req, res) => {
             util.response(res, responseCodes.SUCCESS, 'No such contact found!', statusCodes.NOT_FOUND);
         }
     } catch(err) {
+        errorLog.error(` -- DELETE CONTACT FAILED -- ${err}`);
         util.response(res, responseCodes.ERROR, err, statusCodes.INTERNAL_SERVER_ERROR);
     }
 }

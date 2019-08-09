@@ -18,7 +18,7 @@ const contactApi = require('../api/contacts');
 
 router.get('/contacts/list', expressJoi(contactSchema.listOrSearchContactSchema), contactApi.listOrSearchContact);
 router.post('/contacts/create', expressJoi(contactSchema.createContactSchema), contactApi.createContact);
-router.put('/contacts/edit', expressJoi(contactSchema.editContactSchema), contactApi.editContact);
-router.delete('/contacts/remove', expressJoi(contactSchema.deleteContactSchema), contactApi.deleteContact);
+router.put('/contacts/edit/:_id', expressJoi(contactSchema.editContactSchema), contactApi.editContact);
+router.delete('/contacts/remove/:_id', expressJoi(contactSchema.deleteContactSchema), contactApi.deleteContact);
 
 module.exports = router;

@@ -40,8 +40,15 @@ const initModels = () => {
     })
 }
 
+const toObjectId = (id) => {
+    if(typeof id!= 'undefined') {
+        return mongoose.Types.ObjectId(id);
+    }
+}
+
 
 module.exports = {
     initDb: initDb,
-    entity: db 
+    entity: db,
+    toObjectId: toObjectId 
 };

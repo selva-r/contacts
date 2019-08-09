@@ -16,23 +16,31 @@ const emailSchema = joi.object().keys({
     value : joi.string().email()
 });
 
-const mobileSchema = joi.object().keys({
+const mobileSchema = {
     tag : joi.string(),
     value : joi.string().min(10).required()
-});
+};
 
 const createContactSchema = {
     body: {
         'name' : joi.string().required().error(new Error('Name is required')),
         'email' : joi.array().items(emailSchema),
-        'mobile' : joi.array().items(mobileSchema).required().error(new Error('Mobile number is required'))
+        'mobile' : joi.array().items(mobileSchema).required().error(new Error('Mobile number is required')),
+        'contact_group': joi.string()
     }
 };
+
+const deleteContactSchema = {
+    params: {
+        '_id': joi.any().required()
+    }
+}
 
 /**
  * Export constructor.
  */
 
 module.exports = {
-    createContactSchema : createContactSchema
+    createContactSchema : createContactSchema,
+    deleteContactSchema : deleteContactSchema
 };

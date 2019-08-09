@@ -13,11 +13,13 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const mobileSchema = [{
+    _id: false,
     tag: String,
     value: { type: String, minlength: 10 }
 }];
 
 const emailSchema = [{
+    _id: false,
     tag: String,
     value: { type: String, trim: true, lowercase: true, match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address'] } 
 
@@ -36,7 +38,7 @@ const contactSchema = new Schema({
         type: emailSchema
     },
     contact_group: {
-        type: Array,
+        type: [],
         ref: 'ContactGroup'
     }
 },{
