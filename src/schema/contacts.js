@@ -21,6 +21,14 @@ const mobileSchema = {
     value : joi.string().min(10).required()
 };
 
+const listOrSearchContactSchema = {
+    body : {
+        index : joi.number(),
+        limit : joi.number(),
+        search_value : joi.string() 
+    }
+}
+
 const createContactSchema = {
     body: {
         'name' : joi.string().required().error(new Error('Name is required')),
@@ -41,6 +49,7 @@ const deleteContactSchema = {
  */
 
 module.exports = {
+    listOrSearchContactSchema : listOrSearchContactSchema,
     createContactSchema : createContactSchema,
     deleteContactSchema : deleteContactSchema
 };

@@ -24,10 +24,41 @@ const { responseCodes, statusCodes } = require(APPPATH + '/src/config');
 
 const listOrSearchContact = async (req, res) => {
     try {
+        let searchResults = {};
+        let searchCond = [];
+        let matchStage = { $match: {} };
+        let sortStage = { $sort: { createdAt: -1 }};
+        let limitStage = { $limit : req.body.limit ? req.body.limit : 10 };
+        let skipStage = { $skip : req.body.index ? req.body.index : 0 };
+        let lookUpStage = {
+            $lookup : {
+                from : 'contactgroups',
+                localField : 'contact_group',
+                foreignField : '_id',
+                as : 'contact_group'
+            }
+        }
+        let projectStage = {
+            $project : {
+                name : 1, mobile : 1, email : 1, contact_group: 1, createdAt : 1
+            }
+        };
+        let groupStage = {
+            $group : {
+                _id: null, totalDocs: { $sum: 1 }
+            }
+        }
+
+        if(req.body.search_value) {
+            searchCond = await constructSearchCondition(req.body.search_value);
+            matchStage = { $match: { $or : searchCond }};
+        } 
         
-        let searchKey = req.body.searchKey ? req.body.searchKey : '';
-        let limit = req.body.limit ? req.body.limit : 10; 
-        
+        let result = await entity.Contact.aggregate([matchStage, projectStage ,lookUpStage, sortStage, limitStage, skipStage]);
+        let count = await entity.Contact.aggregate([matchStage, groupStage]);
+        searchResults.data = result;
+        searchResults.count = count.length ? count[0].totalDocs : 0; 
+        util.response(res, responseCodes.SUCCESS, searchResults, statusCodes.SUCCESS);
     } catch(err) {
         errorLog.error(` -- LIST OR SEARCH FAILED -- ${err}`);
         util.response(res, responseCodes.ERROR, 'Something went wrong!', statusCodes.INTERNAL_SERVER_ERROR);
@@ -95,6 +126,48 @@ const deleteContact = async (req, res) => {
         errorLog.error(` -- DELETE CONTACT FAILED -- ${err}`);
         util.response(res, responseCodes.ERROR, err, statusCodes.INTERNAL_SERVER_ERROR);
     }
+}
+
+
+/**
+* Construct search object 
+* @method constructSearchCondition
+* @param {searchVal} String  - Search value
+*/
+
+const constructSearchCondition = (searchVal) => {
+    let searchArr = [];
+    let keyArr = [
+        {
+            key : 'name',
+            ele : 'value',
+            isArray : false
+        },
+        {
+            key : 'mobile',
+            ele : 'value',
+            isArray : true
+        },
+        {
+            key : 'email',
+            ele : 'value',
+            isArray : true
+        }
+    ];
+    keyArr.forEach((keyObj)=>{
+        if(keyObj.isArray) {
+            searchArr.push({
+                [keyObj.key] : {
+                    $elemMatch : {
+                        [keyObj.ele] : new RegExp("^" + ".*" + searchVal + ".*", "i")
+                    }
+                }
+            });
+        } else {
+            searchArr.push({ [keyObj.key] : new RegExp("^" + ".*" + searchVal + ".*", "i") });
+        }
+    });
+    return searchArr;
 }
 
 /**
