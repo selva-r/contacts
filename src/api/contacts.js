@@ -175,10 +175,9 @@ const editContact = async (req, res) => {
                     if(body.name) {
                         updateData['name'] = body.name;
                     }
-                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};
-                    updateData['mobile']['$pull'] = {'mobile': { 'value' : { $in : rmMob }}};                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};
-                    updateData['contact_group']['$pull'] = {'contact_group': { $in : rmCG }};                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};
-                    console.log(updateData);
+                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};                    
+                    updateData['mobile']['$pull'] = {'mobile': { 'value' : { $in : rmMob }}};                    
+                    updateData['contact_group']['$pull'] = {'contact_group': { $in : rmCG }};               
                     await entity.Contact.updateOne({'_id':id},updateData.email);
                     await entity.Contact.updateOne({'_id':id},updateData.mobile);
                     await entity.Contact.updateOne({'_id':id},updateData.contact_group);
@@ -192,7 +191,6 @@ const editContact = async (req, res) => {
                     updateData['mobile']['$push'] = {'mobile' : { $each : adMob }};
                     updateData['email']['$push'] = {'email' : { $each : adEmail }};
                     updateData['contact_group']['$addToSet'] = {'contact_group' : adCG };
-                    console.log(updateData);
                     await entity.Contact.updateOne({'_id':id},updateData.mobile);
                     await entity.Contact.updateOne({'_id':id},updateData.email);
                     await entity.Contact.updateOne({'_id':id},updateData.contact_group);
