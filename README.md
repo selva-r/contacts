@@ -1,1 +1,3 @@
 # contacts
+
+npm start
