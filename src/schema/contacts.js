@@ -38,6 +38,18 @@ const createContactSchema = {
     }
 };
 
+const editContactSchema = {
+    params : {
+        '_id' : joi.any().required()
+    },
+    body : {
+        'name': joi.string(),
+        'mobile' : joi.array().items({ '_id': joi.any(), 'tag': joi.string(), 'value' : joi.string(), 'ops': joi.string() }),
+        'email' : joi.array().items({ '_id': joi.any(), 'tag': joi.string(), 'value' : joi.string(), 'ops': joi.string() }),
+        'contact_group': joi.array().items({ 'ops': joi.string(), 'value':joi.any()})
+    }
+}
+
 const deleteContactSchema = {
     params: {
         '_id': joi.any().required()
@@ -51,5 +63,6 @@ const deleteContactSchema = {
 module.exports = {
     listOrSearchContactSchema : listOrSearchContactSchema,
     createContactSchema : createContactSchema,
+    editContactSchema : editContactSchema,
     deleteContactSchema : deleteContactSchema
 };

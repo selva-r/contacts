@@ -16,8 +16,7 @@ const contactGroupSchema = new Schema({
     name: {
         type: String,
         required: true
-    },
-    contacts: [{ type: Schema.Types.ObjectId, ref: 'Contact'}]
+    }
 },{
     collection: 'contactgroups',
     timestamps: true

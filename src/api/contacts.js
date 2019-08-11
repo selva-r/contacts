@@ -10,7 +10,7 @@
 'use strict';
 
 const APPPATH = require('app-root-path');
-const { entity, toObjectId } = require(APPPATH + '/src/entity');
+const { entity, toObjectId, isValidObjectId } = require(APPPATH + '/src/entity');
 const util = require(APPPATH + '/src/util');
 const { successLog, errorLog } = require(APPPATH + '/log-helper');
 const { responseCodes, statusCodes } = require(APPPATH + '/src/config');
@@ -102,8 +102,127 @@ const createContact = async (req, res) => {
 * @param {res} obj  - Response object
 */
 
-const editContact = (req, res) => {
+const editContact = async (req, res) => {
+    try {
+        const rmMob = [], adMob = [], stMob = []; 
+        const rmEmail = [], adEmail = [], stEmail = []; 
+        const rmCG = [], adCG = [];
+        let update = false;
+        let body = req.body;
+        let id = req.params._id;
+        if(isValidObjectId(id)) {
+            let contact = await entity.Contact.findOne({'_id':id});
+            if(contact) {
+                //mobile
+                if(body.mobile) {
+                    let temp = body.mobile;
+                    temp.forEach((item)=>{
+                        if(item.ops === 'REMOVE') {
+                            rmMob.push(item.value);
+                            update = true;
+                        } else if(item.ops === 'ADD') {
+                            delete item.ops;
+                            adMob.push(item);
+                            update = true;
+                        } else if(item.ops === 'EDIT') {
+                            delete item.ops;
+                            stMob.push(item);
+                            update = true;
+                        }
+                    })
+                }
 
+                //email
+                if(body.email) {
+                    let temp = body.email;
+                    temp.forEach((item)=>{
+                        if(item.ops === 'REMOVE') {
+                            rmEmail.push(item.value);
+                            update = true;
+                        } else if(item.ops === 'ADD') {
+                            delete item.ops;
+                            adEmail.push(item);
+                            update = true;
+                        } else if(item.ops === 'EDIT') {
+                            delete item.ops;
+                            stEmail.push(item);
+                            update = true;
+                        }
+                    })
+                }
+
+                if(body.contact_group) {
+                    let temp = body.contact_group;
+                    temp.forEach((item)=>{
+                        if(item.ops === 'REMOVE') {
+                            rmCG.push(toObjectId(item.value));
+                            update = true;
+                        } else if(item.ops === 'ADD') {
+                            adCG.push(toObjectId(item.value));
+                            update = true;
+                        } 
+                    })
+                }
+
+                if(update) {
+
+                    // delete
+                    let updateData = {
+                        email : {},
+                        mobile : {},
+                        contact_group : {}
+                    };
+                    if(body.name) {
+                        updateData['name'] = body.name;
+                    }
+                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};
+                    updateData['mobile']['$pull'] = {'mobile': { 'value' : { $in : rmMob }}};                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};
+                    updateData['contact_group']['$pull'] = {'contact_group': { $in : rmCG }};                    updateData['email']['$pull'] = {'email': { 'value' : { $in : rmEmail }}};
+                    console.log(updateData);
+                    await entity.Contact.updateOne({'_id':id},updateData.email);
+                    await entity.Contact.updateOne({'_id':id},updateData.mobile);
+                    await entity.Contact.updateOne({'_id':id},updateData.contact_group);
+
+                    // add
+                    updateData = updateData = {
+                        email : {},
+                        mobile : {},
+                        contact_group : {}
+                    };
+                    updateData['mobile']['$push'] = {'mobile' : { $each : adMob }};
+                    updateData['email']['$push'] = {'email' : { $each : adEmail }};
+                    updateData['contact_group']['$addToSet'] = {'contact_group' : adCG };
+                    console.log(updateData);
+                    await entity.Contact.updateOne({'_id':id},updateData.mobile);
+                    await entity.Contact.updateOne({'_id':id},updateData.email);
+                    await entity.Contact.updateOne({'_id':id},updateData.contact_group);
+
+                    // set
+                    stMob.forEach(async(item)=>{
+                        let uid = item._id;
+                        delete item._id;
+                        await entity.Contact.updateOne({'mobile': { $elemMatch : { '_id': uid}}},{ $set : { 'mobile.$': item}});
+                    });
+                    stEmail.forEach(async(item)=>{
+                        let uid = item._id;
+                        delete item._id;
+                        await entity.Contact.updateOne({'email': { $elemMatch : { '_id': uid}}},{ $set: { 'email.$': item }});
+                    })
+
+                    util.response(res, responseCodes.SUCCESS, 'Successfully updated!', statusCodes.SUCCESS); 
+                }
+
+            } else {
+                util.response(res, responseCodes.SUCCESS, 'No such contact found!', statusCodes.NOT_FOUND);
+            }
+        } else {
+            errorLog.error(` -- EDIT CONTACT INVALID OBJECTID -- ${id}`);
+            util.response(res, responseCodes.FAIL, 'Invalid ObjectId', statusCodes.BAD_REQ);
+        }
+    } catch(err) {
+        errorLog.error(` -- EDIT CONTACT FAILED -- ${err}`);
+        util.response(res, responseCodes.ERROR, 'Something went wrong!', statusCodes.INTERNAL_SERVER_ERROR);
+    }
 }
 
 /**
@@ -116,11 +235,16 @@ const editContact = (req, res) => {
 const deleteContact = async (req, res) => {
     try {
         let id = req.params._id;
-        let result = await entity.Contact.findOneAndDelete({'_id': id});
-        if(result) {
-            util.response(res, responseCodes.SUCCESS, 'Successfully deleted!', statusCodes.SUCCESS); 
+        if(isValidObjectId(id)) {
+            let result = await entity.Contact.findOneAndDelete({'_id': id});
+            if(result) {
+                util.response(res, responseCodes.SUCCESS, 'Successfully deleted!', statusCodes.SUCCESS); 
+            } else {
+                util.response(res, responseCodes.SUCCESS, 'No such contact found!', statusCodes.NOT_FOUND);
+            }
         } else {
-            util.response(res, responseCodes.SUCCESS, 'No such contact found!', statusCodes.NOT_FOUND);
+            errorLog.error(` -- DELETE CONTACT INVALID OBJECTID -- ${id}`);
+            util.response(res, responseCodes.FAIL, 'Invalid ObjectId', statusCodes.BAD_REQ);
         }
     } catch(err) {
         errorLog.error(` -- DELETE CONTACT FAILED -- ${err}`);

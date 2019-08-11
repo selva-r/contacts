@@ -46,9 +46,14 @@ const toObjectId = (id) => {
     }
 }
 
+const isValidObjectId = (id) => {
+    return mongoose.Types.ObjectId.isValid(id);
+}
+
 
 module.exports = {
     initDb: initDb,
     entity: db,
-    toObjectId: toObjectId 
+    toObjectId: toObjectId,
+    isValidObjectId : isValidObjectId 
 };
